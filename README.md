@@ -10,7 +10,9 @@ This project is a C program that calculates the minimum number of moves required
 ## Features
 
 -> **Manual Solve**: Enter starting and target positions to calculate the number of moves.
+
 -> **AI Solve**: Automatically generate random starting and target positions and calculate the number of moves.
+
 -> **Chessboard Display**: Visualize the knight's moves on the chessboard.
 
 
