@@ -1,0 +1,265 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define BOARD_SIZE 8
+
+int knight_moves[8][2] = {
+    {2, 1}, {2, -1}, {-2, 1}, {-2, -1},
+    {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
+};
+
+typedef struct {
+    int x, y;
+    int dist;
+    int heuristic;
+} Position;
+
+typedef struct {
+    Position positions[BOARD_SIZE * BOARD_SIZE];
+    int front, rear;
+} Queue;
+
+void initQueue(Queue *q) {
+    q->front = q->rear = 0;
+}
+
+int isEmpty(Queue *q) {
+    return q->front == q->rear;
+}
+
+void enqueue(Queue *q, Position pos) {
+    q->positions[q->rear++] = pos;
+}
+
+Position dequeue(Queue *q) {
+    return q->positions[q->front++];
+}
+
+int isWithinBounds(int x, int y) {
+    return x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE;
+}
+
+int heuristic(int x, int y, int targetX, int targetY) {
+    return abs(x - targetX) + abs(y - targetY);
+}
+
+void printChessboard(int knightX, int knightY) {
+    printf("\n  a b c d e f g h\n");
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        printf("%d ", BOARD_SIZE - i);
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (i == knightY && j == knightX) {
+                printf("K ");
+            } else {
+                printf(". ");
+            }
+        }
+        printf("%d\n", BOARD_SIZE - i);
+    }
+    printf("  a b c d e f g h\n\n");
+}
+
+void printSteps(int path[][2], int pathLength) {
+    for (int i = 0; i < pathLength; i++) {
+        printf("Step %d: Knight moves to (%d, %d)\n", i + 1, path[i][0], path[i][1]);
+        printChessboard(path[i][0], path[i][1]);
+    }
+}
+
+int backtrackPath(int parent[][BOARD_SIZE][2], int targetX, int targetY, int path[][2]) {
+    int x = targetX, y = targetY;
+    int pathLength = 0;
+
+    while (x != -1 && y != -1) {
+        path[pathLength][0] = x;
+        path[pathLength][1] = y;
+        pathLength++;
+        int tempX = parent[x][y][0];
+        int tempY = parent[x][y][1];
+        x = tempX;
+        y = tempY;
+    }
+
+    // Reverse path
+    for (int i = 0; i < pathLength / 2; i++) {
+        int tempX = path[i][0], tempY = path[i][1];
+        path[i][0] = path[pathLength - 1 - i][0];
+        path[i][1] = path[pathLength - 1 - i][1];
+        path[pathLength - 1 - i][0] = tempX;
+        path[pathLength - 1 - i][1] = tempY;
+    }
+
+    return pathLength;
+}
+
+int minKnightMovesBFS(int startX, int startY, int targetX, int targetY) {
+    if (startX == targetX && startY == targetY) return 0;
+
+    int visited[BOARD_SIZE][BOARD_SIZE] = {0};
+    int parent[BOARD_SIZE][BOARD_SIZE][2];
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            parent[i][j][0] = -1;
+            parent[i][j][1] = -1;
+        }
+    }
+
+    Queue q;
+    initQueue(&q);
+
+    Position start = {startX, startY, 0};
+    enqueue(&q, start);
+    visited[startX][startY] = 1;
+
+    while (!isEmpty(&q)) {
+        Position current = dequeue(&q);
+
+        for (int i = 0; i < 8; i++) {
+            int newX = current.x + knight_moves[i][0];
+            int newY = current.y + knight_moves[i][1];
+
+            if (isWithinBounds(newX, newY) && !visited[newX][newY]) {
+                parent[newX][newY][0] = current.x;
+                parent[newX][newY][1] = current.y;
+                if (newX == targetX && newY == targetY) {
+                    int path[BOARD_SIZE * BOARD_SIZE][2];
+                    int pathLength = backtrackPath(parent, targetX, targetY, path);
+                    printSteps(path, pathLength);
+                    return current.dist + 1;
+                }
+
+                visited[newX][newY] = 1;
+                Position next = {newX, newY, current.dist + 1};
+                enqueue(&q, next);
+            }
+        }
+    }
+    return -1;
+}
+
+int minKnightMovesAStar(int startX, int startY, int targetX, int targetY) {
+    if (startX == targetX && startY == targetY) return 0;
+
+    int visited[BOARD_SIZE][BOARD_SIZE] = {0};
+    int parent[BOARD_SIZE][BOARD_SIZE][2];
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            parent[i][j][0] = -1;
+            parent[i][j][1] = -1;
+        }
+    }
+
+    Queue q;
+    initQueue(&q);
+
+    Position start = {startX, startY, 0, heuristic(startX, startY, targetX, targetY)};
+    enqueue(&q, start);
+    visited[startX][startY] = 1;
+
+    while (!isEmpty(&q)) {
+        Position current = dequeue(&q);
+
+        for (int i = 0; i < 8; i++) {
+            int newX = current.x + knight_moves[i][0];
+            int newY = current.y + knight_moves[i][1];
+
+            if (isWithinBounds(newX, newY) && !visited[newX][newY]) {
+                parent[newX][newY][0] = current.x;
+                parent[newX][newY][1] = current.y;
+                if (newX == targetX && newY == targetY) {
+                    int path[BOARD_SIZE * BOARD_SIZE][2];
+                    int pathLength = backtrackPath(parent, targetX, targetY, path);
+                    printSteps(path, pathLength);
+                    return current.dist + 1;
+                }
+
+                visited[newX][newY] = 1;
+                Position next = {newX, newY, current.dist + 1, heuristic(newX, newY, targetX, targetY)};
+                enqueue(&q, next);
+            }
+        }
+    }
+    return -1;
+}
+
+void userSolve(int method) {
+    int startX, startY, targetX, targetY;
+
+    printf("Enter knight's starting position (x y): ");
+    scanf("%d %d", &startX, &startY);
+    printf("Enter knight's target position (x y): ");
+    scanf("%d %d", &targetX, &targetY);
+
+    int moves;
+    if (method == 1) {
+        moves = minKnightMovesBFS(startX, startY, targetX, targetY);
+    } else {
+        moves = minKnightMovesAStar(startX, startY, targetX, targetY);
+    }
+
+    if (moves != -1) {
+        printf("The knight can reach the target in %d moves.\n", moves);
+    } else {
+        printf("The knight cannot reach the target position.\n");
+    }
+}
+
+void aiSolve(int method) {
+    int startX = rand() % BOARD_SIZE;
+    int startY = rand() % BOARD_SIZE;
+    int targetX = rand() % BOARD_SIZE;
+    int targetY = rand() % BOARD_SIZE;
+
+    printf("AI Generated Start Position: (%d, %d)\n", startX, startY);
+    printf("AI Generated Target Position: (%d, %d)\n", targetX, targetY);
+
+    int moves;
+    if (method == 1) {
+        moves = minKnightMovesBFS(startX, startY, targetX, targetY);
+    } else {
+        moves = minKnightMovesAStar(startX, startY, targetX, targetY);
+    }
+
+    if (moves != -1) {
+        printf("The knight can reach the target in %d moves.\n", moves);
+    } else {
+            printf("The knight cannot reach the target position.\n");
+    }
+}
+
+int main() {
+    int choice, method;
+
+    while (1) {
+        printf("Knight's Travails\n");
+        printf("1. Solve manually\n");
+        printf("2. Solve with AI-generated positions\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        if (choice == 1) {
+            printf("Choose method:\n");
+            printf("1. BFS\n");
+            printf("2. A*\n");
+            printf("Enter your choice: ");
+            scanf("%d", &method);
+            userSolve(method);
+        } else if (choice == 2) {
+            printf("Choose method:\n");
+            printf("1. BFS\n");
+            printf("2. A*\n");
+            printf("Enter your choice: ");
+            scanf("%d", &method);
+            aiSolve(method);
+        } else if (choice == 3) {
+            printf("Exiting...\n");
+            break;
+        } else {
+            printf("Invalid choice. Please try again.\n");
+        }
+    }
+
+    return 0;
+}
