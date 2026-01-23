@@ -20,3 +20,22 @@ This project demonstrates strong fundamentals in:
 - BFS guarantees the shortest path
 
 ## Sample Output
+Minimum Moves Required: 6
+Path:
+(0, 0)
+(2, 1)
+(4, 2)
+(6, 3)
+(4, 4)
+(6, 5)
+(7, 7)
+
+
+## Time & Space Complexity
+- **Time Complexity**: O(N²)
+- **Space Complexity**: O(N²)
+
+## Project History
+This problem was originally explored during my graduation period as part of DSA practice.
+Due to device and environment constraints, the initial implementation was not fully preserved online.
+This repository contains a clean re-implementation with improved structure, documentation, and clarity.
