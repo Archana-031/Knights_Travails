@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Knight’s Travails Visualizer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>Knight’s Travails – Visualizer</h1>
+
+  <div class="controls">
+    <select id="algorithm">
+      <option>BFS (Shortest Path)</option>
+      <option disabled>A* (Coming Soon)</option>
+      <option disabled>DFS (Coming Soon)</option>
+    </select>
+
+    <button onclick="start()">▶ Start</button>
+    <button onclick="reset()">🔄 Reset</button>
+
+    <label>
+      Speed
+      <input type="range" id="speed" min="100" max="1000" step="100" value="500">
+    </label>
+  </div>
+
+  <div id="board"></div>
+
+  <p class="hint">
+    Click one square for <b>Start</b>, another for <b>End</b>
+  </p>
+
+  <script src="script.js"></script>
+</body>
+</html>
